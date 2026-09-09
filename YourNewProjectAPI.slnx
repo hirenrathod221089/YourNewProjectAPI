@@ -1,4 +1,5 @@
 <Solution>
+  <Folder Name="/Solution Items/" />
   <Project Path="YourNewProjectAPI.AppCore/YourNewProjectAPI.AppCore.csproj" />
   <Project Path="YourNewProjectAPI.Common/YourNewProjectAPI.Common.csproj" />
   <Project Path="YourNewProjectAPI.Infrastructure/YourNewProjectAPI.Infrastructure.csproj" />

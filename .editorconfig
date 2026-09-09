@@ -1,0 +1,20 @@
+root = true
+
+# All C# code files rules
+[*.cs]
+indent_style = space
+indent_size = 4
+end_of_line = crlf
+insert_final_newline = true
+
+# Style Rules: Require explicit internal/private modifiers instead of leaving them blank
+dotnet_style_require_accessibility_modifiers = always:warning
+
+# Code Block Rules: Force curly braces for all loops and if/else blocks
+csharp_prefer_braces = true:warning
+
+# Optimization Rules: Suggest making classes 'sealed' if they don't have children
+csharp_style_prefer_sealed_class = true:suggestion
+
+# Organization Rules: Sort using directives alphabetically and place System spaces first
+dotnet_sort_system_usings_first = true:suggestion
