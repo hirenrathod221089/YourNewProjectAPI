@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.79" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\YourNewProjectAPI.AppCore\YourNewProjectAPI.AppCore.csproj" />
+    <ProjectReference Include="..\YourNewProjectAPI.Common\YourNewProjectAPI.Common.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<!-- This forces the project to expose its internals strictly to your WebAPI project -->
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>YourNewProjectAPI.WebAPI</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
+
+
+</Project>

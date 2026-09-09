@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="YourNewProjectAPI.AppCore/YourNewProjectAPI.AppCore.csproj" />
+  <Project Path="YourNewProjectAPI.Common/YourNewProjectAPI.Common.csproj" />
+  <Project Path="YourNewProjectAPI.Infrastructure/YourNewProjectAPI.Infrastructure.csproj" />
+  <Project Path="YourNewProjectAPI.UnitTest/YourNewProjectAPI.UnitTest.csproj" />
+  <Project Path="YourNewProjectAPI.WebAPI/YourNewProjectAPI.WebAPI.csproj" />
+</Solution>
