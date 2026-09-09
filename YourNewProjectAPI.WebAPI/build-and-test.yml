@@ -1,0 +1,36 @@
+﻿name: .NET Core CI Pipeline
+
+# This dictates WHEN the pipeline triggers (on any push or pull request to master)
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    name: Build and Test Workspace
+    runs-on: ubuntu-latest # Spins up a clean, high-speed Linux container machine
+
+    steps:
+    # Step 1: Download your source code onto the pipeline machine
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
+
+    # Step 2: Boot up the .NET SDK framework layout
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x' # Replace with '10.0.x' if your solution uses .NET 9
+
+    # Step 3: Download your NuGet dependencies (Dapper, SqlClient, Swashbuckle, etc.)
+    - name: Restore NuGet Packages
+      run: dotnet restore YourNewProjectAPI.slnx
+
+    # Step 4: Compile all 5 projects to verify there are no syntax or type errors
+    - name: Compile Solution (Build)
+      run: dotnet build YourNewProjectAPI.slnx --configuration Release --no-restore
+
+    # Step 5: Execute your test code automatically
+    - name: Run Automated Unit Tests
+      run: dotnet test YourNewProjectAPI.slnx --configuration Release --no-build --verbosity normal
