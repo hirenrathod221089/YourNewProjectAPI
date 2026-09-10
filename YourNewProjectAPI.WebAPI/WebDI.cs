@@ -15,13 +15,10 @@ public static class WebDI
 
     public static IServiceCollection ConfigureInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // 1. Extract the connection string safely from appsettings.json
-        string connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        string connString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException();
 
-        // 2. Pass the connection string directly into the repository constructor when creating it!
-        services.AddScoped<IDashboardRepository>(provider => new DashboardRepository(connectionString));
-
+        // Register Unit of Work as Scoped (one connection per web request)
+        services.AddScoped<IUnitOfWork>(provider => new UnitOfWork(connString));
         return services;
     }
 }
