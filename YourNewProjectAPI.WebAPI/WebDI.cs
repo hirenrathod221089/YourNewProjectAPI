@@ -1,7 +1,8 @@
-﻿using YourNewProjectAPI.AppCore.Interfaces;
+﻿using FluentValidation; // Add at the top
+using YourNewProjectAPI.AppCore.Interfaces;
 using YourNewProjectAPI.AppCore.Services;
+using YourNewProjectAPI.AppCore.Validators;
 using YourNewProjectAPI.Infrastructure.Repositories;
-using Microsoft.Extensions.Configuration; // Add this using directive at the top
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -10,6 +11,10 @@ public static class WebDI
     public static IServiceCollection ConfigureAppCoreServices(this IServiceCollection services)
     {
         services.AddScoped<IDashboardService, DashboardService>();
+
+        // Register all your fluent validators inside AppCore automatically!
+        services.AddValidatorsFromAssemblyContaining<DashboardRequestValidator>();
+
         return services;
     }
 

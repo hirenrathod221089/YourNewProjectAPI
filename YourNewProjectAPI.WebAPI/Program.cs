@@ -14,6 +14,7 @@ builder.Configuration
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 
+// Update your AddControllers block to include fluent validation tracking hooks
 builder.Services.AddControllers()
                 .ConfigureApplicationPartManager(manager =>
                 {
