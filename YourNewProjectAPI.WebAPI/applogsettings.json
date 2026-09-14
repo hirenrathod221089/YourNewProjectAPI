@@ -7,6 +7,9 @@
         "System": "Warning"
       }
     },
+    // ADD THIS NEW SECTION HERE: Tells the engine to look for custom context variables
+    "Enrich": [ "FromLogContext" ],
+
     "WriteTo": [
       {
         "Name": "Console"

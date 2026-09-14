@@ -29,7 +29,13 @@ builder.Services.ConfigureAppCoreServices()
 
 var app = builder.Build();
 
-// Enable Serilog request logging middleware to track HTTP processing speeds automatically
+// 1. Core Exception Interceptor
+app.UseMiddleware<YourNewProjectAPI.WebAPI.Middlewares.GlobalExceptionMiddleware>();
+
+// 2. Custom User Tracer (Must execute before request logger!)
+app.UseMiddleware<YourNewProjectAPI.WebAPI.Middlewares.AuditLoggingMiddleware>();
+
+// 3. Serilog Network Request Logger
 app.UseSerilogRequestLogging();
 
 if (app.Environment.IsDevelopment())
@@ -37,8 +43,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseMiddleware<YourNewProjectAPI.WebAPI.Middlewares.GlobalExceptionMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
