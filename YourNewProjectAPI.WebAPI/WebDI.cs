@@ -1,4 +1,6 @@
-﻿using FluentValidation; // Add at the top
+﻿using FluentMigrator.Runner;
+using FluentValidation; // Add at the top
+using System.Reflection;
 using YourNewProjectAPI.AppCore.Interfaces;
 using YourNewProjectAPI.AppCore.Services;
 using YourNewProjectAPI.AppCore.Validators;
@@ -20,10 +22,21 @@ public static class WebDI
 
     public static IServiceCollection ConfigureInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
-        string connString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException();
+        string connString = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-        // Register Unit of Work as Scoped (one connection per web request)
+        // 1. Register the FluentMigrator runner engine services
+        services.AddLogging(c => c.AddFluentMigratorConsole())
+                .AddFluentMigratorCore()
+                .ConfigureRunner(rb => rb
+                    .AddSqlServer()
+                    .WithGlobalConnectionString(connString)
+                    // Explicitly point the scanner to scan your Infrastructure project for migration scripts
+                    .WithMigrationsIn(Assembly.Load("YourNewProjectAPI.Infrastructure")));
+
+        // 2. Link your Unit of Work engine as we did before
         services.AddScoped<IUnitOfWork>(provider => new UnitOfWork(connString));
+
         return services;
     }
 }

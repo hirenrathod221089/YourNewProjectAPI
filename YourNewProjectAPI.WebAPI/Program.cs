@@ -48,4 +48,22 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
+// Scroll to the bottom of your Program.cs file:
+
+// 1. Read the feature flag value directly from your configuration provider layers
+bool runMigrations = builder.Configuration.GetValue<bool>("DatabaseSettings:RunMigrationsAtStartup");
+
+if (runMigrations)
+{
+    // Locate the migration runner inside your container memory grid
+    using (var scope = app.Services.CreateScope())
+    {
+        var runner = scope.ServiceProvider.GetRequiredService<FluentMigrator.Runner.IMigrationRunner>();
+
+        // Executes all pending schema changes automatically ONLY if true!
+        runner.MigrateUp();
+    }
+}
+
 await app.RunAsync();
+
