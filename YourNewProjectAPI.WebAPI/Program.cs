@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using Serilog; // Add this using directive at the top
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,8 +22,36 @@ builder.Services.AddControllers()
                     manager.FeatureProviders.Add(new InternalControllerFeatureProvider());
                 });
 
+builder.Services.AddControllers()
+                .ConfigureApplicationPartManager(manager =>
+                {
+                    manager.FeatureProviders.Add(new InternalControllerFeatureProvider());
+                });
+
+// 1. ADD THIS BLISTERING HIGH-PERFORMANCE VERSIONING ENGINE SETUP:
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true; // Automatically sends back "api-supported-versions" headers
+    options.ApiVersionReader = new UrlSegmentApiVersionReader(); // Forces versions to look like /v1/ or /v2/
+})
+.AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV"; // Formats version names cleanly for Swagger groups
+    options.SubstituteApiVersionInUrl = true; // Injects the chosen version directly into the route template
+});
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddEndpointsApiExplorer();
+
+// UPDATE YOUR SWAGGER CONFIGURATION SECTION TO THIS BLISTERING CLEAN ENGINE:
+builder.Services.AddSwaggerGen(options =>
+{
+    // Instructs Swagger to use the version explorer group names (v1, v2) automatically!
+    options.DocInclusionPredicate((version, apiDescription) =>
+        apiDescription.GroupName == version);
+});
 
 builder.Services.ConfigureAppCoreServices()
                 .ConfigureInfrastructureServices(builder.Configuration);
@@ -41,7 +70,21 @@ app.UseSerilogRequestLogging();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+
+    // UPDATE YOUR SWAGGER UI BLOCK TO THIS AUTOMATED SCANNER:
+    app.UseSwaggerUI(options =>
+    {
+        // Automatically fetches all registered version descriptors (v1, v2)
+        var descriptions = app.DescribeApiVersions();
+
+        foreach (var description in descriptions)
+        {
+            var url = $"/swagger/{description.GroupName}/swagger.json";
+            var name = description.GroupName.ToUpperInvariant(); // Changes text to V1, V2
+
+            options.SwaggerEndpoint(url, name);
+        }
+    });
 }
 
 app.UseHttpsRedirection();

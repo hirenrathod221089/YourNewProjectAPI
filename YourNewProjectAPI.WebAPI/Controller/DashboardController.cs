@@ -1,4 +1,5 @@
-﻿using FluentValidation; // 1. Add this using directive at the top
+﻿using Asp.Versioning;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using YourNewProjectAPI.AppCore.Dto;
 using YourNewProjectAPI.AppCore.Interfaces;
@@ -6,13 +7,17 @@ using YourNewProjectAPI.AppCore.Interfaces;
 namespace YourNewProjectAPI.WebAPI.Controllers;
 
 [ApiController]
-[Route("v1/[controller]")]
-// 2. Inject IValidator<DashboardRequestDto> directly into your Primary Constructor!
+[ApiVersion("1.0")] // Supported Version 1.0
+[ApiVersion("2.0")] // Explicitly add support for Version 2.0 on this controller class!
+[Route("v{v:apiVersion}/[controller]")]
 internal sealed class DashboardController(
     IDashboardService dashboardService,
     IValidator<DashboardRequestDto> validator) : ControllerBase
 {
+    // --- VERSION 1 ENDPOINTS ---
+
     [HttpGet("summary")]
+    [MapToApiVersion("1.0")] // Maps this specific method strictly to v1
     public async Task<IEnumerable<string>> GetSummary()
     {
         var databaseRows = await dashboardService.FetchDashboardSummaryAsync();
@@ -20,31 +25,37 @@ internal sealed class DashboardController(
     }
 
     [HttpPost("filtered-summary")]
+    [MapToApiVersion("1.0")] // Maps this specific method strictly to v1
     public async Task<IActionResult> GetFilteredSummary([FromBody] DashboardRequestDto request)
     {
-        // 3. EXPLICITLY RUN THE SHIELD: Validate the incoming data packet
         var validationResult = await validator.ValidateAsync(request);
-
-        // 4. If any rule is broken, stop immediately and return an HTTP 400 Bad Request
         if (!validationResult.IsValid)
         {
-            return BadRequest(new
-            {
-                Success = false,
-                Title = "One or more validation errors occurred.",
-                Status = 400,
-                Errors = validationResult.Errors.Select(e => new { Field = e.PropertyName, Error = e.ErrorMessage })
-            });
+            return BadRequest(new { Success = false, Errors = validationResult.Errors.Select(e => e.ErrorMessage) });
         }
 
-        // 5. If data is clean, proceed to your core business logic service
+        var databaseRows = await dashboardService.FetchDashboardSummaryAsync();
+        return Ok(new { Message = $"v1 Filtered Results", Data = databaseRows, Success = true });
+    }
+
+
+    // --- BRAND NEW VERSION 2 ENDPOINT ---
+
+    [HttpGet("summary")]
+    [MapToApiVersion("2.0")] // Maps this advanced endpoint strictly to v2!
+    public async Task<IActionResult> GetSummaryV2()
+    {
         var databaseRows = await dashboardService.FetchDashboardSummaryAsync();
 
-        return Ok(new
+        // Imagine v2 changes the return structure completely to include server metadata diagnostics
+        var v2ResponseEnvelope = new
         {
-            Message = $"Successfully filtered for Module: '{request.ModuleName}' and Year: {request.Year}",
-            Data = databaseRows,
-            Success = true
-        });
+            Version = "2.0-Alpha",
+            Timestamp = DateTime.UtcNow,
+            TotalRecordsFound = databaseRows.Split(", ").Length,
+            Records = databaseRows.Split(", ")
+        };
+
+        return Ok(v2ResponseEnvelope);
     }
 }
