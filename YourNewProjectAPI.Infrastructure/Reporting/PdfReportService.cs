@@ -21,7 +21,7 @@ internal sealed class PdfReportService : IPdfReportService
                 page.Size(PageSizes.A4);
                 page.Margin(2, Unit.Centimetre);
                 page.PageColor(Colors.White);
-                page.DefaultTextStyle(x => x.FontSize(11).FontFamily("Arial"));
+                page.DefaultTextStyle(x => x.FontSize(11).FontFamily("Lato"));
 
                 // 1. TOP TITLE HEADER PANEL
                 page.Header().Text("Revenue Patrak System - Summary Report")
