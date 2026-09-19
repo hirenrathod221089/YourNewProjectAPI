@@ -1,6 +1,6 @@
 ﻿using Asp.Versioning;
 using FluentValidation;
-using Microsoft.AspNetCore.Authorization; // 1. Add this using directive at the top
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using YourNewProjectAPI.AppCore.Dto;
 using YourNewProjectAPI.AppCore.Interfaces;
@@ -13,7 +13,8 @@ namespace YourNewProjectAPI.WebAPI.Controllers;
 [Route("v{v:apiVersion}/[controller]")]
 internal sealed class DashboardController(
     IDashboardService dashboardService,
-    IValidator<DashboardRequestDto> validator) : ControllerBase
+    IValidator<DashboardRequestDto> validator,
+    IPdfReportService pdfReportService) : ControllerBase
 {
     // --- VERSION 1 ENDPOINTS ---
 
@@ -60,6 +61,23 @@ internal sealed class DashboardController(
         };
 
         return Ok(v2ResponseEnvelope);
+    }
+
+    // --- BRAND NEW PDF REPORT DOWNLOAD ACTION ---
+    [HttpGet("download-pdf")]
+    [MapToApiVersion("1.0")] // Let's make it easily accessible to anyone on Version 1.0!
+    public async Task<IActionResult> DownloadSummaryReport()
+    {
+        // 1. Fetch your actual database record string collection values from your service layer
+        var databaseRows = await dashboardService.FetchDashboardSummaryAsync();
+        var recordList = databaseRows.Split(", ");
+
+        // 2. Execute your QuestPDF layout engine to compile the binary report packet stream
+        byte[] pdfBytes = pdfReportService.GenerateDashboardSummaryPdf(recordList);
+
+        // 3. Stream the file binary back to the web browser as a real downloadable attachment file document
+        string fileName = $"Revenue_Summary_{DateTime.Now:yyyyMMdd}.pdf";
+        return File(pdfBytes, "application/pdf", fileName);
     }
 
 

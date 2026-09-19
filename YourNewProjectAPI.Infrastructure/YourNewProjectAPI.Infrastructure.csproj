@@ -5,6 +5,7 @@
     <PackageReference Include="FluentMigrator" Version="8.0.1" />
     <PackageReference Include="FluentMigrator.Runner.SqlServer" Version="8.0.1" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.2" />
+    <PackageReference Include="QuestPDF" Version="2026.9.0" />
   </ItemGroup>
 
   <ItemGroup>
