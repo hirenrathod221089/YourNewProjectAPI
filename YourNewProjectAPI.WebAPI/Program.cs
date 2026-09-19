@@ -27,6 +27,9 @@ builder.Services.AddControllers()
                     manager.FeatureProviders.Add(new InternalControllerFeatureProvider());
                 });
 
+// ADD THIS HIGH-PERFORMANCE MEMORY CACHING ENGINE REGISTRATION:
+builder.Services.AddDistributedMemoryCache(); // Allocates a fast, isolated cache grid in application memory
+
 // 1. Register your versioning tools as we did before
 builder.Services.AddApiVersioning(options =>
 {

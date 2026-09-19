@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using YourNewProjectAPI.AppCore.Dto;
 using YourNewProjectAPI.AppCore.Interfaces;
+using Microsoft.Extensions.Caching.Distributed;
+using System.Text.Json;
 
 namespace YourNewProjectAPI.WebAPI.Controllers;
 
@@ -14,16 +16,40 @@ namespace YourNewProjectAPI.WebAPI.Controllers;
 internal sealed class DashboardController(
     IDashboardService dashboardService,
     IValidator<DashboardRequestDto> validator,
-    IPdfReportService pdfReportService) : ControllerBase
+    IPdfReportService pdfReportService,
+    IDistributedCache cache) : ControllerBase
 {
     // --- VERSION 1 ENDPOINTS ---
 
     [HttpGet("summary")]
     [MapToApiVersion("1.0")]
-    public async Task<IEnumerable<string>> GetSummary()
+    public async Task<IActionResult> GetSummary()
     {
+        string cacheKey = "Dashboard_Summary_Key";
+
+        // 3. Try to fetch data from the high-speed memory cache first
+        var cachedData = await cache.GetStringAsync(cacheKey);
+
+        if (!string.IsNullOrEmpty(cachedData))
+        {
+            var cachedRows = JsonSerializer.Deserialize<IEnumerable<string>>(cachedData);
+            return Ok(new { Source = "High-Speed Memory Cache (Bypassed DB)", Data = cachedRows });
+        }
+
+        // 4. Cache Miss: Fetch fresh data from Dapper if memory is empty
         var databaseRows = await dashboardService.FetchDashboardSummaryAsync();
-        return databaseRows.Split(", ");
+        var recordList = databaseRows.Split(", ");
+
+        // 5. Configure cache expiration guidelines (Keep in memory for 60 seconds)
+        var cacheOptions = new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60)
+        };
+
+        // 6. Save the serialized copy down into the cache grid
+        await cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(recordList), cacheOptions);
+
+        return Ok(new { Source = "SQL Server Database (Dapper Pipeline)", Data = recordList });
     }
 
     [HttpPost("filtered-summary")]
