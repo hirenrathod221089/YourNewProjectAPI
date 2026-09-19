@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authentication;
 using Serilog; // Add this using directive at the top
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,12 +16,10 @@ builder.Configuration
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 
-// Update your AddControllers block to include fluent validation tracking hooks
-builder.Services.AddControllers()
-                .ConfigureApplicationPartManager(manager =>
-                {
-                    manager.FeatureProviders.Add(new InternalControllerFeatureProvider());
-                });
+// UPDATE YOUR AUTHENTICATION REGISTRATION MATRIX TO THIS:
+// REGISTER YOUR HIGH-PERFORMANCE SECURITY SCHEME ENGINE HERE:
+builder.Services.AddAuthentication("SimulatedAuth")
+                .AddScheme<AuthenticationSchemeOptions, YourNewProjectAPI.WebAPI.Security.SimulatedAuthHandler>("SimulatedAuth", null);
 
 builder.Services.AddControllers()
                 .ConfigureApplicationPartManager(manager =>
@@ -28,30 +27,37 @@ builder.Services.AddControllers()
                     manager.FeatureProviders.Add(new InternalControllerFeatureProvider());
                 });
 
-// 1. ADD THIS BLISTERING HIGH-PERFORMANCE VERSIONING ENGINE SETUP:
+// 1. Register your versioning tools as we did before
 builder.Services.AddApiVersioning(options =>
 {
-    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.DefaultApiVersion = new Asp.Versioning.ApiVersion(1, 0);
     options.AssumeDefaultVersionWhenUnspecified = true;
-    options.ReportApiVersions = true; // Automatically sends back "api-supported-versions" headers
-    options.ApiVersionReader = new UrlSegmentApiVersionReader(); // Forces versions to look like /v1/ or /v2/
+    options.ReportApiVersions = true;
+    options.ApiVersionReader = new Asp.Versioning.UrlSegmentApiVersionReader();
 })
 .AddApiExplorer(options =>
 {
-    options.GroupNameFormat = "'v'VVV"; // Formats version names cleanly for Swagger groups
-    options.SubstituteApiVersionInUrl = true; // Injects the chosen version directly into the route template
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
 });
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddEndpointsApiExplorer();
-
-// UPDATE YOUR SWAGGER CONFIGURATION SECTION TO THIS BLISTERING CLEAN ENGINE:
+// 2. Add these two lines to hook up your new configuration helper class!
+builder.Services.AddTransient<Microsoft.Extensions.Options.IConfigureOptions<Swashbuckle.AspNetCore.SwaggerGen.SwaggerGenOptions>, YourNewProjectAPI.WebAPI.ConfigureSwaggerOptions>();
 builder.Services.AddSwaggerGen(options =>
 {
-    // Instructs Swagger to use the version explorer group names (v1, v2) automatically!
-    options.DocInclusionPredicate((version, apiDescription) =>
-        apiDescription.GroupName == version);
+    // Enable the secure 'Bearer Token' security definition layout using native OpenApi types
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.ParameterLocation.Header,
+        Description = "Enter your simulated tracking token below. Example: 'Bearer tracking-token-abc'"
+    });
 });
+
+
 
 builder.Services.ConfigureAppCoreServices()
                 .ConfigureInfrastructureServices(builder.Configuration);
@@ -61,7 +67,7 @@ var app = builder.Build();
 // 1. Core Exception Interceptor
 app.UseMiddleware<YourNewProjectAPI.WebAPI.Middlewares.GlobalExceptionMiddleware>();
 
-// 2. Custom User Tracer (Must execute before request logger!)
+// 2. Custom User Tracer (FIXED: Clean namespace shortcut)
 app.UseMiddleware<YourNewProjectAPI.WebAPI.Middlewares.AuditLoggingMiddleware>();
 
 // 3. Serilog Network Request Logger
@@ -71,16 +77,16 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
 
-    // UPDATE YOUR SWAGGER UI BLOCK TO THIS AUTOMATED SCANNER:
+    // UPDATE YOUR SWAGGER UI BLOCK TO THIS PERFECTLY MOUNTED ROUTE GENERATOR:
     app.UseSwaggerUI(options =>
     {
-        // Automatically fetches all registered version descriptors (v1, v2)
         var descriptions = app.DescribeApiVersions();
 
         foreach (var description in descriptions)
         {
+            // USE description.GroupName DIRECTLY: This dynamically creates the exact casing required (/V1/ or /V2/)
             var url = $"/swagger/{description.GroupName}/swagger.json";
-            var name = description.GroupName.ToUpperInvariant(); // Changes text to V1, V2
+            var name = description.GroupName.ToUpperInvariant(); // Displays clean "V1" or "V2" text strings inside the selector
 
             options.SwaggerEndpoint(url, name);
         }
@@ -88,7 +94,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseAuthorization();
+
+// ENSURE THESE TWO LINES ARE SITTING IN THIS EXACT ORDER:
+app.UseRouting();
+
+app.UseHttpsRedirection();
+app.UseAuthentication(); // 1. Reads your custom SimulatedAuthFilter claims pass!
+app.UseAuthorization(); // Enables attribute evaluation map parsing
+
 app.MapControllers();
 
 // Scroll to the bottom of your Program.cs file:

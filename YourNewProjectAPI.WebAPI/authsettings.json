@@ -1,0 +1,7 @@
+{
+  "AuthenticationSettings": {
+    "SimulationMode": true,
+    "DefaultSimulatedUser": "Officer-Hiren",
+    "DefaultSimulatedRole": "Chitnish"
+  }
+}

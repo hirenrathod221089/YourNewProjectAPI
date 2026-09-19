@@ -1,5 +1,6 @@
 ﻿using Asp.Versioning;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization; // 1. Add this using directive at the top
 using Microsoft.AspNetCore.Mvc;
 using YourNewProjectAPI.AppCore.Dto;
 using YourNewProjectAPI.AppCore.Interfaces;
@@ -7,8 +8,8 @@ using YourNewProjectAPI.AppCore.Interfaces;
 namespace YourNewProjectAPI.WebAPI.Controllers;
 
 [ApiController]
-[ApiVersion("1.0")] // Supported Version 1.0
-[ApiVersion("2.0")] // Explicitly add support for Version 2.0 on this controller class!
+[ApiVersion("1.0")]
+[ApiVersion("2.0")]
 [Route("v{v:apiVersion}/[controller]")]
 internal sealed class DashboardController(
     IDashboardService dashboardService,
@@ -17,7 +18,7 @@ internal sealed class DashboardController(
     // --- VERSION 1 ENDPOINTS ---
 
     [HttpGet("summary")]
-    [MapToApiVersion("1.0")] // Maps this specific method strictly to v1
+    [MapToApiVersion("1.0")]
     public async Task<IEnumerable<string>> GetSummary()
     {
         var databaseRows = await dashboardService.FetchDashboardSummaryAsync();
@@ -25,7 +26,8 @@ internal sealed class DashboardController(
     }
 
     [HttpPost("filtered-summary")]
-    [MapToApiVersion("1.0")] // Maps this specific method strictly to v1
+    [MapToApiVersion("1.0")]
+    [Authorize] // 2. SHIELD 1: User must simply be authenticated to hit this v1 endpoint
     public async Task<IActionResult> GetFilteredSummary([FromBody] DashboardRequestDto request)
     {
         var validationResult = await validator.ValidateAsync(request);
@@ -41,21 +43,24 @@ internal sealed class DashboardController(
 
     // --- BRAND NEW VERSION 2 ENDPOINT ---
 
-    [HttpGet("summary")]
-    [MapToApiVersion("2.0")] // Maps this advanced endpoint strictly to v2!
+    [HttpGet("summary")] // Maps the specific path verb token
+    [MapToApiVersion("2.0")] // Binds the action route strictly to your v2 engine profile
+    [Authorize(Roles = "Chitnish")] // Retain your security firewall boundary
     public async Task<IActionResult> GetSummaryV2()
     {
         var databaseRows = await dashboardService.FetchDashboardSummaryAsync();
 
-        // Imagine v2 changes the return structure completely to include server metadata diagnostics
         var v2ResponseEnvelope = new
         {
             Version = "2.0-Alpha",
             Timestamp = DateTime.UtcNow,
             TotalRecordsFound = databaseRows.Split(", ").Length,
-            Records = databaseRows.Split(", ")
+            Records = databaseRows.Split(", "),
+            AccessedByRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
         };
 
         return Ok(v2ResponseEnvelope);
     }
+
+
 }
