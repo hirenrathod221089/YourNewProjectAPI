@@ -106,5 +106,24 @@ internal sealed class DashboardController(
         return File(pdfBytes, "application/pdf", fileName);
     }
 
+    [HttpPost("create")]
+    [MapToApiVersion("1.0")]
+    public async Task<IActionResult> CreateRecord([FromBody] string patrakName)
+    {
+        if (string.IsNullOrWhiteSpace(patrakName))
+        {
+            return BadRequest(new { Success = false, Message = "Name cannot be empty." });
+        }
+
+        int generatedId = await dashboardService.CreatePatrakEntryAsync(patrakName);
+
+        return Ok(new
+        {
+            Success = true,
+            Message = $"Successfully inserted record '{patrakName}' with generated ID row number: {generatedId}!"
+        });
+    }
+
+
 
 }

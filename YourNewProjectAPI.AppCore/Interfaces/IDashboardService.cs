@@ -2,7 +2,9 @@
 {
     public interface IDashboardService
     {
+        public Task<int> CreatePatrakEntryAsync(string patrakName);
+
         // A clean task blueprint returning a mock string data package
-        Task<string> FetchDashboardSummaryAsync();
+        public Task<string> FetchDashboardSummaryAsync();
     }
 }

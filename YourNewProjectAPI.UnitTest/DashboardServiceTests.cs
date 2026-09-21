@@ -44,6 +44,13 @@ internal class FakeDashboardRepository(IEnumerable<string> mockData) : IDashboar
     {
         return await Task.FromResult(mockData);
     }
+
+    // ADD THIS FIX HERE: Implements the new interface method so your test project compiles!
+    public async Task<int> AddNewPatrakRecordAsync(string patrakName, bool isActive)
+    {
+        // Simply return a mock row ID number (like 99) to satisfy the unit test pipeline
+        return await Task.FromResult(99);
+    }
 }
 
 internal class FakeUnitOfWork(IEnumerable<string> mockData) : IUnitOfWork

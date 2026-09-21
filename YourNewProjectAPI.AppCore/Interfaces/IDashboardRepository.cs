@@ -2,6 +2,8 @@
 
 public interface IDashboardRepository
 {
-    // Updated contract to accept a parameter filter
-    Task<IEnumerable<string>> GetRawSummaryCountsAsync(bool isActive);
+    public Task<IEnumerable<string>> GetRawSummaryCountsAsync(bool isActive);
+
+    // ADD THIS NEW WRITE CONTRACT DEFINITION HERE:
+    public Task<int> AddNewPatrakRecordAsync(string patrakName, bool isActive);
 }
