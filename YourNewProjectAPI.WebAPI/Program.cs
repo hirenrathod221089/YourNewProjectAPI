@@ -65,6 +65,21 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.ConfigureAppCoreServices()
                 .ConfigureInfrastructureServices(builder.Configuration);
 
+// 1. READ YOUR TRUSTED FRONTLINE DOMAINS FROM CONFIGURATION
+var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() ?? [];
+
+// 2. REGISTER THE CORS SHIELD POLICY INSIDE ENVIRONMENT SERVICE MEMORY
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("EnterpriseCorsPolicy", policy =>
+    {
+        policy.WithOrigins(allowedOrigins) // Accept only your trusted sites
+              .AllowAnyMethod()            // Allow GET, POST, PUT, DELETE
+              .AllowAnyHeader()            // Allow custom auth headers like X-User-Id
+              .AllowCredentials();         // Secure cookie tracking bounds pass support
+    });
+});
+
 var app = builder.Build();
 
 // 1. Core Exception Interceptor
@@ -100,8 +115,7 @@ app.UseHttpsRedirection();
 
 // ENSURE THESE TWO LINES ARE SITTING IN THIS EXACT ORDER:
 app.UseRouting();
-
-app.UseHttpsRedirection();
+app.UseCors("EnterpriseCorsPolicy"); // ◄ MUST sit between Routing and Authentication!
 app.UseAuthentication(); // 1. Reads your custom SimulatedAuthFilter claims pass!
 app.UseAuthorization(); // Enables attribute evaluation map parsing
 
