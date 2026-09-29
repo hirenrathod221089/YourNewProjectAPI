@@ -10,7 +10,7 @@ public class DashboardServiceTests
     public async Task FetchDashboardSummaryAsync_WhenRecordsExist_ReturnsFormattedString()
     {
         // 1. ARRANGE: Set up a fake mock repository behavior
-        var mockRecords = new List<string> { "Patrak-1", "Patrak-2" };
+        var mockRecords = new List<string> { "Monthly, Quarterly, Quarterly, Six-Monthly, Yearly" };
         var fakeUnitOfWork = new FakeUnitOfWork(mockRecords);
         var service = new DashboardService(fakeUnitOfWork);
 
