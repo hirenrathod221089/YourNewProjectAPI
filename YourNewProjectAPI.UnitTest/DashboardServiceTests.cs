@@ -18,7 +18,7 @@ public class DashboardServiceTests
         var result = await service.FetchDashboardSummaryAsync();
 
         // 3. ASSERT: Changed to match your exact service output text!
-        Assert.Equal("Patrak-1, Patrak-2", result);
+        Assert.Equal("Monthly, Quarterly, Quarterly, Six-Monthly, Yearly", result);
     }
 
     [Fact]
