@@ -45,10 +45,11 @@ internal sealed class DashboardController(
     [Authorize]
     public async Task<IActionResult> GetFilteredSummary([FromBody] DashboardRequestDto request)
     {
+        // CLEAN & EXPRESSIVE: Automatically throws an exception if the model fails validation checks!
         var validationResult = await validator.ValidateAsync(request);
         if (!validationResult.IsValid)
         {
-            return BadRequest(new { Success = false, Errors = validationResult.Errors.Select(e => e.ErrorMessage) });
+            throw new ValidationException(validationResult.Errors); // Handled instantly by middleware!
         }
 
         var databaseRows = await dashboardService.FetchDashboardSummaryAsync();

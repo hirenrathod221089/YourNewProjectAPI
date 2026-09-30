@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc; // Add this for ProblemDetails
+using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Text.Json;
+using FluentValidation; // 1. Add this using statement at the top
+using YourNewProjectAPI.AppCore.Dto;
 
 namespace YourNewProjectAPI.WebAPI.Middlewares;
 
@@ -13,16 +15,36 @@ internal sealed class GlobalExceptionMiddleware(RequestDelegate next, Serilog.IL
         {
             await next(context);
         }
-        catch (Exception ex)
+        catch (ValidationException valEx) // 2. INTERCEPT FLUENTVALIDATION DROPS SEPARATELY:
         {
-            // 1. Log the full detailed crash tracking parameters locally via Serilog
+            context.Response.ContentType = "application/problem+json";
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+
+            // Extract the exact validation error errors list parameters dynamically
+            var errorDetails = valEx.Errors.Select(e => new ValidationErrorDetail(e.PropertyName, e.ErrorMessage));
+
+            var problemDetails = new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Type = "https://yourcompanyportal.com",
+                Title = "One or more validation errors occurred.",
+                Detail = "Please refer to the errors property for additional details.",
+                Instance = context.Request.Path
+            };
+
+            // Inject the custom errors dictionary safely into the standard Problem Details container
+            problemDetails.Extensions.Add("errors", errorDetails);
+
+            var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+            await context.Response.WriteAsync(JsonSerializer.Serialize(problemDetails, jsonOptions));
+        }
+        catch (Exception ex) // 3. Catch all other regular 500 runtime server errors here
+        {
             logger.Error(ex, "An unhandled exception occurred during Request: {RequestPath}", context.Request.Path);
 
-            // 2. Clear response buffers and configure the standard Content Type headers
             context.Response.ContentType = "application/problem+json";
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-            // 3. Compile the standard corporate RFC 7807 payload envelope
             var problemDetails = new ProblemDetails
             {
                 Status = StatusCodes.Status500InternalServerError,
@@ -32,11 +54,8 @@ internal sealed class GlobalExceptionMiddleware(RequestDelegate next, Serilog.IL
                 Instance = context.Request.Path
             };
 
-            // 4. Serialize and stream the payload packet back to the browser window
             var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-            string jsonResult = JsonSerializer.Serialize(problemDetails, jsonOptions);
-
-            await context.Response.WriteAsync(jsonResult);
+            await context.Response.WriteAsync(JsonSerializer.Serialize(problemDetails, jsonOptions));
         }
     }
 }
