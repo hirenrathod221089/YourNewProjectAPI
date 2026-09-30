@@ -5,10 +5,9 @@ using YourNewProjectAPI.AppCore.Interfaces;
 
 namespace YourNewProjectAPI.WebAPI.Controllers.V2;
 
-[ApiController]
-[ApiVersion("2.0")] // 1. Binds this entire file to Version 2 only
-[Route("v{v:apiVersion}/[controller]")]
-internal sealed class DashboardController(IDashboardService dashboardService) : ControllerBase
+[ApiVersion("2.0")]
+// INHERIT FROM APIBASECONTROLLER: Replaced the duplicate route and api controller lines!
+internal sealed class DashboardController(IDashboardService dashboardService) : ApiBaseController
 {
     [HttpGet("summary")]
     [Authorize(Roles = "Chitnish")]

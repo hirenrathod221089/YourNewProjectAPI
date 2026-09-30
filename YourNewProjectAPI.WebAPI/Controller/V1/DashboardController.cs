@@ -9,14 +9,13 @@ using YourNewProjectAPI.AppCore.Interfaces;
 
 namespace YourNewProjectAPI.WebAPI.Controllers.V1;
 
-[ApiController]
-[ApiVersion("1.0")] // 1. Binds this entire file to Version 1 only
-[Route("v{v:apiVersion}/[controller]")]
+[ApiVersion("1.0")]
+// INHERIT FROM APIBASECONTROLLER: Replaced the duplicate route and api controller lines!
 internal sealed class DashboardController(
     IDashboardService dashboardService,
     IValidator<DashboardRequestDto> validator,
     IPdfReportService pdfReportService,
-    IDistributedCache cache) : ControllerBase
+    IDistributedCache cache) : ApiBaseController
 {
     [HttpGet("summary")]
     public async Task<IActionResult> GetSummary()

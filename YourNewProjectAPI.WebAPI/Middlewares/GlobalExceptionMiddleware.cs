@@ -1,38 +1,42 @@
-﻿using System.Net;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc; // Add this for ProblemDetails
+using System.Net;
 using System.Text.Json;
-using Microsoft.Extensions.Logging;
 
 namespace YourNewProjectAPI.WebAPI.Middlewares;
 
-internal sealed class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
+internal sealed class GlobalExceptionMiddleware(RequestDelegate next, Serilog.ILogger logger)
 {
     public async Task InvokeAsync(HttpContext context)
     {
         try
         {
-            await next(context); // Send request to the next step (Controller)
+            await next(context);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An unhandled execution error occurred in the pipeline.");
-            await HandleExceptionAsync(context, ex);
+            // 1. Log the full detailed crash tracking parameters locally via Serilog
+            logger.Error(ex, "An unhandled exception occurred during Request: {RequestPath}", context.Request.Path);
+
+            // 2. Clear response buffers and configure the standard Content Type headers
+            context.Response.ContentType = "application/problem+json";
+            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+
+            // 3. Compile the standard corporate RFC 7807 payload envelope
+            var problemDetails = new ProblemDetails
+            {
+                Status = StatusCodes.Status500InternalServerError,
+                Type = "https://yourcompanyportal.com",
+                Title = "An unexpected error occurred while processing your request.",
+                Detail = "Our engineering team has been automatically notified. Please try again later.",
+                Instance = context.Request.Path
+            };
+
+            // 4. Serialize and stream the payload packet back to the browser window
+            var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+            string jsonResult = JsonSerializer.Serialize(problemDetails, jsonOptions);
+
+            await context.Response.WriteAsync(jsonResult);
         }
-    }
-
-    private static Task HandleExceptionAsync(HttpContext context, Exception exception)
-    {
-        context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-        var errorEnvelope = new
-        {
-            Success = false,
-            Data = (string)null,
-            Message = "Internal Server Error. Please contact your administrator.",
-            Diagnostics = exception.Message // Mask this line in production env environments
-        };
-
-        var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-        return context.Response.WriteAsync(JsonSerializer.Serialize(errorEnvelope, jsonOptions));
     }
 }
