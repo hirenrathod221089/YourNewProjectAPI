@@ -27,8 +27,23 @@ builder.Services.AddControllers()
                     manager.FeatureProviders.Add(new InternalControllerFeatureProvider());
                 });
 
-// ADD THIS HIGH-PERFORMANCE MEMORY CACHING ENGINE REGISTRATION:
-builder.Services.AddDistributedMemoryCache(); // Allocates a fast, isolated cache grid in application memory
+// READ YOUR REDIS CONFIGURATION FROM STRINGS MAP
+string redisConnectionString = builder.Configuration.GetConnectionString("RedisCacheConnection") ?? string.Empty;
+
+if (!string.IsNullOrWhiteSpace(redisConnectionString) && !redisConnectionString.Contains("localhost"))
+{
+    // ACTIVE DISTRIBUTED REDIS: Fires up when connecting to staging or production network infrastructure grids!
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConnectionString;
+        options.InstanceName = "ILMS_Microservice_"; // Prefixes cache keys to prevent collision issues
+    });
+}
+else
+{
+    // LOCAL INDEPENDENT CACHE: Falls back cleanly to local high-speed application RAM for local developer velocity!
+    builder.Services.AddDistributedMemoryCache();
+}
 
 // 1. Register your versioning tools as we did before
 builder.Services.AddApiVersioning(options =>
