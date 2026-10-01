@@ -4,12 +4,13 @@ using System.Reflection;
 using YourNewProjectAPI.AppCore.Interfaces;
 using YourNewProjectAPI.AppCore.Services;
 using YourNewProjectAPI.AppCore.Validators;
-using YourNewProjectAPI.Infrastructure.Repositories;
+using YourNewProjectAPI.Infrastructure;
 using YourNewProjectAPI.Infrastructure.Reporting;
+using YourNewProjectAPI.Infrastructure.Repositories;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public static class WebDI
+public static class WebDID  
 {
     public static IServiceCollection ConfigureAppCoreServices(this IServiceCollection services)
     {
@@ -34,8 +35,11 @@ public static class WebDI
                     .WithGlobalConnectionString(connString)
                     .WithMigrationsIn(Assembly.Load("YourNewProjectAPI.Infrastructure")));
 
-        // 2. Existing Unit of Work registration...
-        services.AddScoped<IUnitOfWork>(provider => new UnitOfWork(connString));
+        services.AddScoped<IUnitOfWork>(provider =>
+        {
+            var userContext = provider.GetRequiredService<IUserContext>();
+            return new UnitOfWork(connString, userContext);
+        });
 
         // 3. ADD THIS LINE HERE TO REGISTER YOUR NEW QUESTPDF ENGINES MATRIX:
         services.AddScoped<IPdfReportService, PdfReportService>();

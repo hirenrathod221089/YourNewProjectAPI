@@ -4,23 +4,34 @@ using YourNewProjectAPI.AppCore.Interfaces;
 
 namespace YourNewProjectAPI.Infrastructure.Repositories;
 
-internal sealed class DashboardRepository(IDbConnection connection, IDbTransaction transaction) : IDashboardRepository
+// ENFORCES PRIMARY CONSTRUCTORS: Inject IUserContext straight into the repository!
+internal sealed class DashboardRepository(
+    IDbConnection connection,
+    IDbTransaction transaction,
+    IUserContext userContext) : IDashboardRepository // ◄ Added userContext tracking handle here
 {
     public async Task<IEnumerable<string>> GetRawSummaryCountsAsync(bool isActive)
     {
-        string sqlQuery = "SELECT CategoryNameEng FROM PatrakCategoryTbl WHERE IsActive = @ActiveFilter";
+        string sqlQuery = "SELECT PatrakName FROM PatrakRegisters WHERE IsActive = @ActiveFilter";
         return await connection.QueryAsync<string>(sqlQuery, new { ActiveFilter = isActive }, transaction);
     }
 
-    // IMPLEMENT THE HIGH-SPEED WRITE LOGIC HERE:
     public async Task<int> AddNewPatrakRecordAsync(string patrakName, bool isActive)
     {
-        // Enforce parameterized bindings to prevent SQL Injection attempts completely!
-        string sqlInsert = $@"INSERT INTO PatrakRegisters (PatrakName, IsActive) 
-                             VALUES (@Name, @ActiveStatus);
-                             SELECT CAST(SCOPE_IDENTITY() as int);"; // Returns the newly created Id row number
+        // AUTOMATED AUDITING: The insert query maps audit columns implicitly!
+        string sqlInsert = @"INSERT INTO PatrakRegisters (PatrakName, IsActive, CreatedBy, CreatedDate, CreatedByIp) 
+                             VALUES (@Name, @ActiveStatus, @User, @Date, @Ip);
+                             SELECT CAST(SCOPE_IDENTITY() as int);";
 
-        var queryParameters = new { Name = patrakName, ActiveStatus = isActive };
+        // Read active officer parameters silently behind the scenes without manual controller parameters parameters overhead!
+        var queryParameters = new
+        {
+            Name = patrakName,
+            ActiveStatus = isActive,
+            User = userContext.LoginId ?? "System-Fallback",
+            Date = DateTime.UtcNow,
+            Ip = userContext.UserIpAddress ?? "127.0.0.1"
+        };
 
         return await connection.ExecuteScalarAsync<int>(sqlInsert, queryParameters, transaction);
     }
