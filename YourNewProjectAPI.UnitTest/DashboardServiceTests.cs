@@ -1,5 +1,4 @@
-﻿using Xunit;
-using YourNewProjectAPI.AppCore.Interfaces;
+﻿using YourNewProjectAPI.AppCore.Interfaces;
 using YourNewProjectAPI.AppCore.Services;
 
 namespace YourNewProjectAPI.UnitTest;

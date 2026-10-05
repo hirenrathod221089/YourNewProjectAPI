@@ -14,7 +14,12 @@ public class M20260914_CreatePatrakTable : Migration
             Create.Table("PatrakRegisters")
                 .WithColumn("Id").AsInt32().PrimaryKey().Identity()
                 .WithColumn("PatrakName").AsString(100).NotNullable()
-                .WithColumn("IsActive").AsBoolean().NotNullable().WithDefaultValue(true);
+                .WithColumn("IsActive").AsBoolean().NotNullable().WithDefaultValue(true)
+                .WithColumn("CreatedBy").AsString(100).NotNullable().WithDefaultValue("System")
+                .WithColumn("CreatedDate").AsDateTime().NotNullable().WithDefaultValue(SystemMethods.CurrentDateTime)
+                .WithColumn("CreatedByIp").AsString(50).NotNullable().WithDefaultValue("127.0.0.1")
+                .WithColumn("LastUpdatedDate").AsDateTime().Nullable();
+
 
             // 2. Insert seed data so your Dapper repository instantly finds records to pull!
             Insert.IntoTable("PatrakRegisters").Row(new { PatrakName = "Monthly" });

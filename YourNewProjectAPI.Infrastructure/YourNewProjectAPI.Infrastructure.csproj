@@ -26,5 +26,13 @@
 		</AssemblyAttribute>
 	</ItemGroup>
 
+	<!-- GRANTS YOUR TEST SUITE ACCESS TO INTERNAL SEALED REPOSITORIES SAFELY -->
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>YourNewProjectAPI.UnitTest</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
+
+
 
 </Project>

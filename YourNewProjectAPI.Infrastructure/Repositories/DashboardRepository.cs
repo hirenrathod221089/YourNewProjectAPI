@@ -12,7 +12,7 @@ internal sealed class DashboardRepository(
 {
     public async Task<IEnumerable<string>> GetRawSummaryCountsAsync(bool isActive)
     {
-        string sqlQuery = "SELECT PatrakName FROM PatrakRegisters WHERE IsActive = @ActiveFilter";
+        string sqlQuery = "SELECT CategoryNameEng FROM PatrakCategoryTbl WHERE IsActive = @ActiveFilter";
         return await connection.QueryAsync<string>(sqlQuery, new { ActiveFilter = isActive }, transaction);
     }
 
