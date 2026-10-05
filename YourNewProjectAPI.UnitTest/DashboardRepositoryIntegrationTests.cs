@@ -9,9 +9,10 @@ namespace YourNewProjectAPI.UnitTest;
 public sealed class DashboardRepositoryIntegrationTests
 {
     // High-performance sandbox database network path target
-    private const string TestConnectionString = "Data Source=mssql.pmunic.local\\MSSQL25; Initial Catalog=Patrak;UID=sa;Pwd=pmunic$712;language=British English;Pooling=True;Connection Timeout=0;TrustServerCertificate=True;";
+    private const string TestConnectionString = "Data Source=local\\MSSQL25; Initial Catalog=Patrak;UID=sa;Pwd=sa123;language=British English;Pooling=True;Connection Timeout=0;TrustServerCertificate=True;";
 
     [Fact]
+    [Trait("Category", "Integration")] // ◄ ADD THIS TAG HERE!
     public async Task AddNewPatrakRecordAsync_WhenExecuted_AutomaticallyPersistsCompleteAuditFootprint()
     {
         // 1. ARRANGE: Revert back to using the concrete SqlConnection type so OpenAsync() works perfectly

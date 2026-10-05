@@ -31,6 +31,7 @@ jobs:
     - name: Compile Solution (Build)
       run: dotnet build YourNewProjectAPI.slnx --configuration Release --no-restore
 
-    # Step 5: Execute your test code automatically
+    # Step 5: Execute your test code automatically (Skipping heavy local database integration tests)
     - name: Run Automated Unit Tests
-      run: dotnet test YourNewProjectAPI.slnx --configuration Release --no-build --verbosity normal
+      run: dotnet test YourNewProjectAPI.slnx --configuration Release --no-build --verbosity normal --filter "Category!=Integration"
+
