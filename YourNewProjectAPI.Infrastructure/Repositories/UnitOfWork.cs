@@ -16,6 +16,8 @@ public sealed class UnitOfWork(string connectionString, IUserContext userContext
     // Add the '!' symbol right after _transaction to clear the warning:
     public IDashboardRepository Dashboards => new DashboardRepository(_connection, _transaction!, userContext);
 
+    public IUserRepository Users => new UserRepository(_connection, _transaction!);
+
     public IDbConnection Connection => _connection;
     public IDbTransaction? Transaction => _transaction;
 

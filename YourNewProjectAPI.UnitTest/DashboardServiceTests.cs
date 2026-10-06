@@ -55,8 +55,13 @@ internal class FakeDashboardRepository(IEnumerable<string> mockData) : IDashboar
 internal class FakeUnitOfWork(IEnumerable<string> mockData) : IUnitOfWork
 {
     public IDashboardRepository Dashboards => new FakeDashboardRepository(mockData);
+
+    // ADD THIS FIX HERE: Implements the new interface member to satisfy the compiler!
+    public IUserRepository Users => null!; // We pass null! since these legacy tests don't touch user data
+
     public void BeginTransaction() { }
     public void Commit() { }
     public void Rollback() { }
     public void Dispose() { }
 }
+

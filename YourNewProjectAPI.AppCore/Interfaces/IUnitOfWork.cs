@@ -3,9 +3,12 @@
 public interface IUnitOfWork : IDisposable
 {
     // List all your domain repositories here as view-only targets
-    IDashboardRepository Dashboards { get; }
+    public IDashboardRepository Dashboards { get; }
 
-    void BeginTransaction();
-    void Commit();
-    void Rollback();
+    // ADD THIS LINE HERE TO REGISTER YOUR NEW USER ACCESS REPOSITORY CONTRACT:
+    public IUserRepository Users { get; }
+
+    public void BeginTransaction();
+    public void Commit();
+    public void Rollback();
 }
