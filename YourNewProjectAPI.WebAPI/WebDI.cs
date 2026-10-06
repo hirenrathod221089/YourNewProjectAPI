@@ -1,12 +1,13 @@
 ﻿using FluentMigrator.Runner;
 using FluentValidation;
 using System.Reflection;
+using YourNewProjectAPI.AppCore.DependencyInjection;
 using YourNewProjectAPI.AppCore.Interfaces;
 using YourNewProjectAPI.AppCore.Services;
 using YourNewProjectAPI.AppCore.Validators;
 using YourNewProjectAPI.Infrastructure;
 using YourNewProjectAPI.Infrastructure.Reporting;
-using YourNewProjectAPI.AppCore.DependencyInjection;
+using YourNewProjectAPI.WebAPI;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -30,7 +31,10 @@ public static class WebDID
         string connString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-        // 1. Existing FluentMigrator configurations...
+        // 1. ADD THIS MAPPING HERE TO FIX THE DI MISSING SERVICE CRASH:
+        services.AddScoped<IUserContext, MockUserContext>();
+
+        // 2. Existing FluentMigrator configurations...
         services.AddLogging(c => c.AddFluentMigratorConsole())
                 .AddFluentMigratorCore()
                 .ConfigureRunner(rb => rb
@@ -38,13 +42,13 @@ public static class WebDID
                     .WithGlobalConnectionString(connString)
                     .WithMigrationsIn(Assembly.Load("YourNewProjectAPI.Infrastructure")));
 
+        // 3. This block will now resolve perfectly without throwing exceptions!
         services.AddScoped<IUnitOfWork>(provider =>
         {
             var userContext = provider.GetRequiredService<IUserContext>();
             return new UnitOfWork(connString, userContext);
         });
 
-        // 3. ADD THIS LINE HERE TO REGISTER YOUR NEW QUESTPDF ENGINES MATRIX:
         services.AddScoped<IPdfReportService, PdfReportService>();
 
         return services;

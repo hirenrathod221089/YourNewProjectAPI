@@ -1,4 +1,3 @@
-using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication;
 using Serilog; // Add this using directive at the top
 
