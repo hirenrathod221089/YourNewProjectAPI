@@ -6,11 +6,11 @@ using YourNewProjectAPI.AppCore.Services;
 using YourNewProjectAPI.AppCore.Validators;
 using YourNewProjectAPI.Infrastructure;
 using YourNewProjectAPI.Infrastructure.Reporting;
-using YourNewProjectAPI.Infrastructure.Repositories;
+using YourNewProjectAPI.AppCore.DependencyInjection;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public static class WebDID  
+public static class WebDID
 {
     public static IServiceCollection ConfigureAppCoreServices(this IServiceCollection services)
     {
@@ -18,6 +18,9 @@ public static class WebDID
 
         // Register all your fluent validators inside AppCore automatically!
         services.AddValidatorsFromAssemblyContaining<DashboardRequestValidator>();
+
+        services.AddApplicationCoreServices();
+
 
         return services;
     }
